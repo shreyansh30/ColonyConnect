@@ -72,7 +72,7 @@ export default function HomePage() {
 
   // ✅ Fetch issues
   useEffect(() => {
-    fetch("http://localhost:8080/api/issues")
+    fetch("https://colonyconnect.onrender.com/api/issues")
       .then((res) => res.json())
       .then((data) => setIssues(data))
       .catch((err) => console.error("❌ Error fetching issues:", err))

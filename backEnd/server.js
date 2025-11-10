@@ -25,6 +25,7 @@ app.use(cors({
     "https://shreyansh30.github.io", // your GitHub Pages domain
     "https://colonyconnect.onrender.com" // your Render domain (optional)
   ],
+  methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true
 }));
 

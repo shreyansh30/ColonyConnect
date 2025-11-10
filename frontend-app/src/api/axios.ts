@@ -1,7 +1,10 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "https://colonyconnect.onrender.com",
+  baseURL:
+    import.meta.env.MODE === "development"
+      ? "https://colonyconnect.onrender.com/api"  
+      : "https://colonyconnect.onrender.com/api",
 });
 
 api.interceptors.request.use((config) => {

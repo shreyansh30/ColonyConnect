@@ -19,7 +19,15 @@ cloudinary.config({
 
 const app = express();
 app.use(express.json());
-app.use(cors({ origin: "http://localhost:5173" }));
+app.use(cors({
+  origin: [
+    "http://localhost:5173",        // local frontend
+    "https://shreyansh30.github.io", // your GitHub Pages domain
+    "https://colonyconnect.onrender.com" // your Render domain (optional)
+  ],
+  credentials: true
+}));
+
 app.use(morgan("dev"));
 
 import userRoutes from "./routes/userRoutes.js";

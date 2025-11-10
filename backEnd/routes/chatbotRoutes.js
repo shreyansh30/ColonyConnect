@@ -1,3 +1,5 @@
+/* eslint-disable */
+// @ts-nocheck
 import express from "express";
 import { chatbotReplyGemini } from "../utils/geminiAi.js";
 

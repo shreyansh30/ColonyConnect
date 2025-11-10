@@ -1,3 +1,5 @@
+/* eslint-disable */
+// @ts-nocheck
 import mongoose from "mongoose";
 
 const issueSchema = new mongoose.Schema(

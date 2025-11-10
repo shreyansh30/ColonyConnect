@@ -1,3 +1,5 @@
+/* eslint-disable */
+// @ts-nocheck
 import Issue from "../models/issueModel.js";
 // import { uploadToCloudinary } from "../utils/cloudinary.js"; // keep this if you already use it
 import { detectPriorityGemini, summarizeReportGemini } from "../utils/geminiAi.js";

@@ -6,7 +6,7 @@
   "homepage": "https://shreyansh30.github.io/ColonyConnect",
   "scripts": {
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d dist",
+    "deploy": "gh-pages -d dist --git git",
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",

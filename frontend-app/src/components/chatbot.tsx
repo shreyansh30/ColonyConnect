@@ -1,115 +1,115 @@
 import { useState } from "react";
-import api from "../api/axios";
+import { MessageCircle, X, Send } from "lucide-react";
 
 export default function Chatbot() {
   const [isOpen, setIsOpen] = useState(false);
-  const [input, setInput] = useState("");
-  const [messages, setMessages] = useState<{ from: string; text: string }[]>([]);
+  interface ChatMessage {
+    sender: "user" | "bot";
+    text: string;
+  }
 
-  const handleSend = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+
+
+  const [input, setInput] = useState("");
+
+  // 🧠 Handle send
+  const handleSend = async () => {
     if (!input.trim()) return;
-    const newMessages = [...messages, { from: "user", text: input }];
-    setMessages(newMessages);
+
+    const userMsg: ChatMessage = { sender: "user", text: input };
+    setMessages((prev: ChatMessage[]) => [...prev, userMsg]);
+
     setInput("");
 
     try {
-      const res = await api.post("/chatbot", { message: input });
-      setMessages([...newMessages, { from: "bot", text: res.data.reply }]);
+      const res = await fetch("http://localhost:8080/api/chatbot", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: input }),
+      });
+      const data = await res.json();
+
+      setMessages((prev) => [
+        ...prev,
+        { sender: "bot", text: data.reply || "⚠️ Sorry, I can’t respond right now." },
+      ]);
     } catch {
-      setMessages([...newMessages, { from: "bot", text: "⚠️ Failed to connect to AI assistant." }]);
+      setMessages((prev) => [...prev, { sender: "bot", text: "❌ Connection issue. Try again later." }]);
+    }
+  };
+
+  // ✨ Auto-greet on open
+  const handleToggle = () => {
+    setIsOpen(!isOpen);
+    if (!isOpen && messages.length === 0) {
+      setMessages([
+        {
+          sender: "bot",
+          text: "👋 Hi! I’m ColonyConnect Assistant. How can I help you today?",
+        },
+      ]);
     }
   };
 
   return (
-    <div>
-      {/* Floating chat bubble button */}
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        style={{
-          position: "fixed",
-          bottom: "20px",
-          right: "20px",
-          background: "#1e293b",
-          color: "#fff",
-          borderRadius: "50%",
-          width: "60px",
-          height: "60px",
-          fontSize: "24px",
-          border: "none",
-          cursor: "pointer",
-          boxShadow: "0 3px 8px rgba(0,0,0,0.2)",
-        }}
-      >
-        💬
-      </button>
-
-      {/* Chat window */}
-      {isOpen && (
-        <div
-          style={{
-            position: "fixed",
-            bottom: "90px",
-            right: "20px",
-            background: "#1e293b",
-            color: "#fff",
-            padding: "1rem",
-            borderRadius: "12px",
-            width: "300px",
-            boxShadow: "0 3px 8px rgba(0,0,0,0.3)",
-          }}
+    <div className="fixed bottom-6 right-6 z-50">
+      {/* Floating Chat Icon */}
+      {!isOpen && (
+        <button
+          onClick={handleToggle}
+          className="bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-full shadow-lg transition-transform transform hover:scale-110"
         >
-          <h4>🤖 ColonyConnect Assistant</h4>
+          <MessageCircle size={24} />
+        </button>
+      )}
 
-          <div
-            style={{
-              maxHeight: "200px",
-              overflowY: "auto",
-              marginBottom: "10px",
-              background: "#334155",
-              padding: "0.5rem",
-              borderRadius: "8px",
-            }}
-          >
-            {messages.map((m, i) => (
-              <p
+      {/* Chatbox */}
+      {isOpen && (
+        <div className="w-80 md:w-96 bg-white border border-blue-200 rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-fadeIn">
+          {/* Header */}
+          <div className="flex justify-between items-center bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-3">
+            <h3 className="font-semibold text-lg">💬 ColonyConnect Assistant</h3>
+            <button onClick={handleToggle}>
+              <X size={20} />
+            </button>
+          </div>
+
+          {/* Messages */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-blue-50">
+            {messages.map((msg, i) => (
+              <div
                 key={i}
-                style={{
-                  textAlign: m.from === "user" ? "right" : "left",
-                  margin: "6px 0",
-                }}
+                className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
               >
-                <b>{m.from === "user" ? "You" : "Bot"}:</b> {m.text}
-              </p>
+                <div
+                  className={`max-w-[75%] px-3 py-2 rounded-xl text-sm shadow-sm ${msg.sender === "user"
+                      ? "bg-blue-600 text-white rounded-br-none"
+                      : "bg-white text-gray-800 border border-blue-200 rounded-bl-none"
+                    }`}
+                >
+                  {msg.text}
+                </div>
+              </div>
             ))}
           </div>
 
-          <form onSubmit={handleSend}>
+          {/* Input */}
+          <div className="p-3 bg-white border-t border-blue-100 flex items-center gap-2">
             <input
+              type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask something..."
-              style={{
-                width: "80%",
-                padding: "5px",
-                borderRadius: "5px",
-                border: "none",
-              }}
+              placeholder="Type your message..."
+              className="flex-1 border border-blue-200 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
             />
             <button
-              type="submit"
-              style={{
-                marginLeft: "5px",
-                background: "#f59e0b",
-                border: "none",
-                padding: "6px 10px",
-                borderRadius: "5px",
-                cursor: "pointer",
-              }}
+              onClick={handleSend}
+              className="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-full transition"
             >
-              ➤
+              <Send size={16} />
             </button>
-          </form>
+          </div>
         </div>
       )}
     </div>

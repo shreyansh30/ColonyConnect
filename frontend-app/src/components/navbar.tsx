@@ -6,103 +6,77 @@ export default function Navbar() {
   const location = useLocation();
   const [user, setUser] = useState<any>(null);
 
-  // 🔄 Load user whenever the route changes (updates after login/logout)
+  // ✅ Load user info from localStorage when route changes
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    } else {
+  const loadUser = () => {
+    const stored = localStorage.getItem("userInfo");
+    if (!stored) {
+      setUser(null);
+      return;
+    }
+
+    try {
+      const parsed = JSON.parse(stored);
+      // If backend saved { user: { name, email }, token } use parsed.user
+      // Otherwise if saved { name, email, token } use parsed directly
+      const normalized = parsed.user ? parsed.user : parsed;
+      setUser(normalized);
+    } catch (err) {
+      console.error("Failed to parse userInfo:", err);
       setUser(null);
     }
-  }, [location]);
+  };
+
+  loadUser();
+
+  const onStorage = () => loadUser();
+  window.addEventListener("storage", onStorage);
+  return () => window.removeEventListener("storage", onStorage);
+}, [location]);
+
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+    localStorage.removeItem("userInfo");
     setUser(null);
     navigate("/login");
   };
 
-  // 🧭 Determine user role
-  const isAdmin = user?.email === "admin@colonyconnect.com";
-
   return (
-    <nav
-      style={{
-        padding: "1rem",
-        background: "#1e293b",
-        color: "#fff",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-      }}
-    >
-      <div>
-        {/* 🏠 Home always visible */}
+    <header className="flex justify-between items-center px-8 py-4 bg-white shadow-sm rounded-b-2xl sticky top-0 z-50">
+      <h1 className="text-2xl font-bold text-blue-700"><Link to="/" className="text-2xl font-bold text-blue-700">ColonyConnect</Link></h1>
+
+      <nav className="flex-1 flex justify-center items-center gap-8">
         <Link
           to="/"
-          style={{ marginRight: "1rem", color: "#fff", textDecoration: "none" }}
+          className={`px-3 py-2 rounded-lg font-medium transition ${location.pathname === "/"
+              ? "bg-blue-100 text-blue-600"
+              : "text-gray-800 hover:text-blue-600"
+            }`}
         >
-          🏠 Home
+          Home
         </Link>
 
-        {/* 👤 Normal user sees Issues + Report */}
-        {user && !isAdmin && (
-          <>
-            <Link
-              to="/issues"
-              style={{
-                marginRight: "1rem",
-                color: "#fff",
-                textDecoration: "none",
-              }}
-            >
-              📋 Issues
-            </Link>
+        <Link
+          to="/issues"
+          className={`px-3 py-2 rounded-lg font-medium transition ${location.pathname === "/issues"
+              ? "bg-blue-100 text-blue-600"
+              : "text-gray-800 hover:text-blue-600"
+            }`}
+        >
+          Issues
+        </Link>
+      </nav>
 
-            <Link
-              to="/report"
-              style={{
-                marginRight: "1rem",
-                color: "#fff",
-                textDecoration: "none",
-              }}
-            >
-              📝 Report
-            </Link>
-          </>
-        )}
-
-        {/* 🧰 Admin sees Open Issues (dashboard) */}
-        {isAdmin && (
-          <Link
-            to="/admin"
-            style={{
-              marginRight: "1rem",
-              color: "#fff",
-              textDecoration: "none",
-            }}
-          >
-            🧰 Open Issues
-          </Link>
-        )}
-      </div>
-
-      <div>
-        {/* 🔐 Auth controls */}
+      {/* Right Side Buttons */}
+      <div className="flex items-center gap-4">
         {user ? (
           <>
-            <span style={{ marginRight: "1rem" }}>👋 Hi, {user.name}</span>
+            <span className="text-gray-700 font-medium">
+              Welcome, {user.name?.split(" ")[0] || "User"}
+            </span>
             <button
               onClick={handleLogout}
-              style={{
-                background: "#ef4444",
-                color: "#fff",
-                border: "none",
-                padding: "6px 12px",
-                borderRadius: "6px",
-                cursor: "pointer",
-              }}
+              className="bg-red-500 text-white px-3 py-1.5 rounded-md hover:bg-red-600 transition"
             >
               Logout
             </button>
@@ -110,12 +84,23 @@ export default function Navbar() {
         ) : (
           <Link
             to="/login"
-            style={{ color: "#fff", textDecoration: "none" }}
+            className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition"
           >
             Login
           </Link>
         )}
+
+        {/* Report button visible only when logged in */}
+        {user && (
+          <Link
+            to="/report"
+            className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition"
+          >
+            + Report Issue
+          </Link>
+        )}
       </div>
-    </nav>
+    </header>
   );
 }
+
